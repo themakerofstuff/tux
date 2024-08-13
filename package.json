@@ -1,0 +1,11 @@
+{
+    "name": "some_package",
+    "version": "2.6.4",
+    "patches": true,
+    "filename": "zstd.txz",
+    "url": "https:??",
+    "depends": [
+        "ncurses",
+        "skibidi"
+    ]
+}
