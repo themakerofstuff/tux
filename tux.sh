@@ -101,7 +101,7 @@ tux_install() {
         tux_info "Building package ${pkg}..."
         cd $BUILD_DIR
         sleep 0.5
-        if ! buildpkg | tee $LOG_FILE; then
+        if ! buildpkg; then
             tux_error "Failed to build package ${pkg}"
             tux_error "Log can be found at:"
             echo $LOG_FILE
@@ -114,7 +114,7 @@ tux_install() {
         if [ ! -d "$DST" ]; then
             mkdir -p $DST
         fi
-        if ! installpkg | tee -a $LOG_FILE; then
+        if ! installpkg; then
             tux_error "Failed to install package ${pkg}"
             tux_error "Log can be found at:"
             echo $LOG_FILE
@@ -137,7 +137,7 @@ tux_install() {
         if type postinstpkg &> /dev/null; then
             tux_info "Running post install tasks for ${pkg}..."
             cd $BUILD_DIR
-            if ! postinstpkg | tee -a $LOG_FILE; then
+            if ! postinstpkg; then
                 tux_error "Failed to run post-install for package ${pkg}"
                 tux_error "Log can be found at:"
                 echo $LOG_FILE
