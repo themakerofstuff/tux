@@ -294,7 +294,6 @@ tux_bootstrap() {
     tux_install libstdcpp-bootstrap false
     tux_info "Building base-bootstrap..."
     tux_install base-bootstrap false
-    tux_info "Building base-download..."
 }
 
 if [ "$EUID" != "0" ]; then tux_error "This must be run as root"; exit 1; fi
