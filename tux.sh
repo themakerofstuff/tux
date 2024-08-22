@@ -56,6 +56,8 @@ tux_install() {
         exit 1
     fi
 
+    if [ -d "$ROOT/etc/tux/installed/$1" ]; then tux_info "Package $1 is already installed"; return 0; fi
+
     tux_info "The following packages will be installed:"
     echo $(tux_resolve_deps $1) $1
     if [ "$2" == "true" ]; then
@@ -101,6 +103,10 @@ tux_install() {
         tux_info "Building package ${pkg}..."
         cd $BUILD_DIR
         sleep 0.5
+        DST=${ROOT}/var/lib/tux/${pkg}-${pkgver}
+        if [ ! -d "$DST" ]; then
+            mkdir -p $DST
+        fi
         if ! buildpkg; then
             tux_error "Failed to build package ${pkg}"
             tux_error "Log can be found at:"
@@ -110,10 +116,6 @@ tux_install() {
         fi
         tux_info "Installing package ${pkg}..."
         sleep 0.5
-        DST=${ROOT}/var/lib/tux/${pkg}-${pkgver}
-        if [ ! -d "$DST" ]; then
-            mkdir -p $DST
-        fi
         if ! installpkg; then
             tux_error "Failed to install package ${pkg}"
             tux_error "Log can be found at:"
