@@ -1,4 +1,4 @@
-destdir = ""
+root = ""
 prefix = ""
 
 install:
