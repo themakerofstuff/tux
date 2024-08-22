@@ -56,11 +56,7 @@ tux_install() {
         exit 1
     fi
 
-<<<<<<< HEAD
-    if [ -d "$ROOT/etc/tux/installed/$1" ]; then tux_info "Package $1 already installed"; return 0; fi
-=======
     if [ -d "$ROOT/etc/tux/installed/$1" ]; then tux_info "Package $1 is already installed"; return 0; fi
->>>>>>> 84b9db59f75ad7fc326249b29fd6543a1afd5c2b
 
     tux_info "The following packages will be installed:"
     echo $(tux_resolve_deps $1) $1
