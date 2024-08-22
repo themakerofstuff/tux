@@ -56,7 +56,11 @@ tux_install() {
         exit 1
     fi
 
+<<<<<<< HEAD
+    if [ -d "$ROOT/etc/tux/installed/$1" ]; then tux_info "Package $1 already installed"; return 0; fi
+=======
     if [ -d "$ROOT/etc/tux/installed/$1" ]; then tux_info "Package $1 is already installed"; return 0; fi
+>>>>>>> 84b9db59f75ad7fc326249b29fd6543a1afd5c2b
 
     tux_info "The following packages will be installed:"
     echo $(tux_resolve_deps $1) $1
@@ -99,9 +103,11 @@ tux_install() {
             fi
         fi
         source $ROOT/etc/tux/make.conf
-        export MAKEFLAGS
+        export MAKEFLAGS CFLAGS CXXFLAGS LDFLAGS CPPFLAGS
         tux_info "Building package ${pkg}..."
         cd $BUILD_DIR
+	DST=$ROOT/var/lib/tux/$pkg-$pkgver
+	mkdir -p $DST
         sleep 0.5
         DST=${ROOT}/var/lib/tux/${pkg}-${pkgver}
         if [ ! -d "$DST" ]; then
@@ -135,7 +141,7 @@ tux_install() {
         done
         tux_info "Copying files for ${pkg}..."
         sleep 0.5
-        cp -r ${DST}/* ${ROOT}/
+        rsync -aK ${DST}/* ${ROOT}/
         if type postinstpkg &> /dev/null; then
             tux_info "Running post install tasks for ${pkg}..."
             cd $BUILD_DIR
@@ -149,6 +155,9 @@ tux_install() {
         fi
         tux_info "Cleaning up..."
         rm -rf $BUILD_DIR $DST $LOG_FILE
+	unset -f buildpkg
+	unset -f installpkg
+	unset -f postinstpkg
         tux_success "Successfully installed ${pkg}"
     done
 }
@@ -254,7 +263,9 @@ tux_bootstrap() {
     tux_info "Setting up root in ${ROOT}..."
     mkdir -p ${ROOT}/{etc,var} ${ROOT}/usr/{bin,lib,sbin}
     for x in bin lib sbin; do
-        ln -s usr/$x $ROOT/$x
+	if [ ! -d "$ROOT/$x" ]; then
+        	ln -s usr/$x $ROOT/$x
+	fi
     done
     case $(uname -m) in
         x86_64) mkdir -p $ROOT/lib64 ;;
@@ -270,7 +281,9 @@ tux_bootstrap() {
     echo https://github.com/themakerofstuff/tuxpkgs > $REPO_FILE
     tux_info "Cloning package repository..."
     sleep 0.3
-    git clone $(cat $REPO_FILE) $REPO_DIR
+    if [ ! -d "$REPO_DIR" ]; then
+    	git clone $(cat $REPO_FILE) $REPO_DIRi
+    fi
     tux_info "Setting environment..."
     set +h
     umask 022
