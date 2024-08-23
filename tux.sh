@@ -102,8 +102,8 @@ tux_install() {
         export MAKEFLAGS CFLAGS CXXFLAGS LDFLAGS CPPFLAGS
         tux_info "Building package ${pkg}..."
         cd $BUILD_DIR
-	DST=$ROOT/var/lib/tux/$pkg-$pkgver
-	mkdir -p $DST
+	    DST=$ROOT/var/lib/tux/$pkg-$pkgver
+	    mkdir -p $DST
         sleep 0.5
         DST=${ROOT}/var/lib/tux/${pkg}-${pkgver}
         if [ ! -d "$DST" ]; then
@@ -137,7 +137,11 @@ tux_install() {
         done
         tux_info "Copying files for ${pkg}..."
         sleep 0.5
-        rsync -aK ${DST}/* ${ROOT}/
+        if type copypkgfiles &> /dev/null; then
+            copypkgfiles
+        else
+            rsync -aK ${DST}/* ${ROOT}/
+        fi
         if type postinstpkg &> /dev/null; then
             tux_info "Running post install tasks for ${pkg}..."
             cd $BUILD_DIR
@@ -151,9 +155,9 @@ tux_install() {
         fi
         tux_info "Cleaning up..."
         rm -rf $BUILD_DIR $DST $LOG_FILE
-	unset -f buildpkg
-	unset -f installpkg
-	unset -f postinstpkg
+	    unset -f buildpkg
+	    unset -f installpkg
+	    unset -f postinstpkg
         tux_success "Successfully installed ${pkg}"
     done
 }
