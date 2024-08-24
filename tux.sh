@@ -406,6 +406,7 @@ chmod -v 600  /var/log/btmp
 EOT
     tux_info "Building base-temptools..."
     chroot $ROOT /usr/bin/env -i HOME=/root TERM="$TERM" PS1="(chroot)\u:\w$ " PATH=/usr/bin:/usr/sbin /bin/bash --login -e << "EOT"
+export ROOT=""
 tux install base-temptools
 EOT
     tux_info "Cleaning up temporary tools..."
@@ -416,6 +417,7 @@ rm -rf /tools
 EOT
     tux_info "Building base..."
     chroot $ROOT /usr/bin/env -i HOME=/root TERM="$TERM" PS1="(chroot)\u:\w$ " PATH=/usr/bin:/usr/sbin /bin/bash --login -e << "EOT"
+export ROOT=""
 tux install base
 EOT
 }
