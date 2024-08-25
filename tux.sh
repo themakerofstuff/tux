@@ -37,7 +37,7 @@ tux_resolve_deps() {
     deps_to_install=()
     source $BUILD_FILE
     for dep in ${depends[@]}; do
-        if [ "$(ls ${ROOT}/etc/tux/installed | grep $dep)" == "" ]; then
+        if [ ! -d "$ROOT/etc/tux/installed/$dep" ]; then
             deps_to_install+=( $(tux_resolve_deps $dep) )
             deps_to_install+=( "${dep}" )
         fi
@@ -81,11 +81,11 @@ tux_install() {
         tux_info "Downloading files for package ${pkg}..."
         sleep 0.5
         for url in ${pkgurls[@]}; do
-            IFS='/' read -ra pkgname <<< "$url"
-            if [ ! -f $ROOT/var/lib/tux/sources/${pkgname[-1]} ]; then
+            IFS='/' read -ra pkgnm <<< "$url"
+            if [ ! -f $ROOT/var/lib/tux/sources/${pkgnm[-1]} ]; then
                 wget $url -P ${BUILD_DIR}/
             else
-                cp $ROOT/var/lib/tux/sources/${pkgname[-1]} $BUILD_DIR/
+                cp $ROOT/var/lib/tux/sources/${pkgnm[-1]} $BUILD_DIR/
             fi
         done
         if [ -f "${REPO_DIR}/${pkg}/sha512sums" ]; then
