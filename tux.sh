@@ -283,7 +283,7 @@ tux_bootstrap() {
     tux_info "Cloning package repository..."
     sleep 0.3
     if [ ! -d "$REPO_DIR" ]; then
-    	git clone $(cat $REPO_FILE) $REPO_DIRi
+    	git clone $(cat $REPO_FILE) $REPO_DIR
     fi
     tux_info "Setting environment..."
     set +h
