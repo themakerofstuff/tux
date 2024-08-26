@@ -33,11 +33,10 @@ tux_resolve_deps() {
         tux_error "Failed to find package $1"
         exit 1
     fi
-    circular=$1
     deps_to_install=()
     source $BUILD_FILE
     for dep in ${depends[@]}; do
-        if [ ! -d "$ROOT/etc/tux/installed/$dep" ]; then
+        if [ ! -d "$ROOT/etc/tux/installed/$dep" ] || ! echo ${deps_to_install[@]} | grep $dep; then
             deps_to_install+=( $(tux_resolve_deps $dep) )
             deps_to_install+=( "${dep}" )
         fi
@@ -275,6 +274,7 @@ tux_bootstrap() {
     mkdir -p ${ROOT}/etc/tux/installed
     mkdir -p ${ROOT}/var/lib/tux
     [ -z "$MAKEFLAGS" ] && echo MAKEFLAGS=-j$(nproc) >> $ROOT/etc/tux/make.conf || echo MAKEFLAGS=$MAKEFLAGS >> $ROOT/etc/tux/make.conf
+    [ -z "$NINJAJOBS" ] && echo NINJAJOBS=-j$(nproc) >> $ROOT/etc/tux/make.conf || echo NINJAJOBS=$NINJAJOBS >> $ROOT/etc/tux/make.conf
     [ -z "$CFLAGS" ] || echo CFLAGS=$CFLAGS >> $ROOT/etc/tux/make.conf
     [ -z "$CXXFLAGS" ] || echo CXXFLAGS=$CXXFLAGS >> $ROOT/etc/tux/make.conf
     [ -z "$CPPFLAGS" ] || echo CPPFLAGS=$CPPFLAGS >> $ROOT/etc/tux/make.conf
@@ -414,6 +414,7 @@ EOT
 rm -rf /usr/share/{info,man,doc}/*
 find /usr/{lib,libexec} -name \*.la -delete
 rm -rf /tools
+rm -rf /etc/tux/installed/*
 EOT
     tux_info "Building base..."
     chroot $ROOT /usr/bin/env -i HOME=/root TERM="$TERM" PS1="(chroot)\u:\w$ " PATH=/usr/bin:/usr/sbin /bin/bash --login -e << "EOT"
@@ -480,7 +481,7 @@ done
 unset BIN LIB save_usrlib online_usrbin online_usrlib
 rm -rf /tmp/{*,.*}
 find /usr/lib /usr/libexec -name \*.la -delete
-find /usr -depth -name $(uname -m)-lfs-linux-gnu\* | xargs rm -rf
+find /usr -depth -name $(uname -m)-tux-linux-gnu\* | xargs rm -rf
 EOT
 }
 
