@@ -36,11 +36,13 @@ tux_resolve_deps() {
     deps_to_install=()
     source $BUILD_FILE
     for dep in ${depends[@]}; do
-        if [ ! -d "$ROOT/etc/tux/installed/$dep" ] || ! echo ${deps_to_install[@]} | grep $dep; then
+        if [ ! -d "$ROOT/etc/tux/installed/$dep" ]; then
             deps_to_install+=( $(tux_resolve_deps $dep) )
             deps_to_install+=( "${dep}" )
         fi
     done
+    for dep in ${deps_to_install[@]}; do
+        deps_to_install=( "$(echo ${deps_to_install[@]} | sed s/\ $dep\ /\ /2g)" )
     echo ${deps_to_install[@]}
 }
 
@@ -414,7 +416,6 @@ EOT
 rm -rf /usr/share/{info,man,doc}/*
 find /usr/{lib,libexec} -name \*.la -delete
 rm -rf /tools
-rm -rf /etc/tux/installed/*
 EOT
     tux_info "Building base..."
     chroot $ROOT /usr/bin/env -i HOME=/root TERM="$TERM" PS1="(chroot)\u:\w$ " PATH=/usr/bin:/usr/sbin /bin/bash --login -e << "EOT"
@@ -482,6 +483,7 @@ unset BIN LIB save_usrlib online_usrbin online_usrlib
 rm -rf /tmp/{*,.*}
 find /usr/lib /usr/libexec -name \*.la -delete
 find /usr -depth -name $(uname -m)-tux-linux-gnu\* | xargs rm -rf
+rm -rf /etc/tux/installed/*-bootstrap /etc/tux/installed/*-temp /etc/tux/installed/base-temptools
 EOT
 }
 
