@@ -43,6 +43,7 @@ tux_resolve_deps() {
     done
     for dep in ${deps_to_install[@]}; do
         deps_to_install=( "$(echo ${deps_to_install[@]} | sed s/\ $dep\ /\ /2g)" )
+    done
     echo ${deps_to_install[@]}
 }
 
