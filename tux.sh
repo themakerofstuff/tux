@@ -48,6 +48,7 @@ tux_resolve_deps() {
 }
 
 tux_install() {
+    OPT=$2
     if [ ! -d "$REPO_DIR" ]; then
         tux_info "Package repository not found, cloning it..."
         git clone $(cat $REPO_FILE) $REPO_DIR
@@ -57,12 +58,11 @@ tux_install() {
         tux_error "Failed to find package $1"
         exit 1
     fi
-
     if [ -d "$ROOT/etc/tux/installed/$1" ]; then tux_info "Package $1 is already installed"; return 0; fi
 
     tux_info "The following packages will be installed:"
     echo $(tux_resolve_deps $1) $1
-    if [ "$2" == "true" ]; then
+    if [ "$OPT" == "true" ]; then
         read -p "Do you want to continue? [y/n] " yn
         if [ "$yn" == "n" ] || [ "$yn" == "N" ]; then
             exit 1
@@ -493,7 +493,7 @@ if [ "$EUID" != "0" ]; then tux_error "This must be run as root"; exit 1; fi
 tux_info "Using ${ROOT}/ as root directory"
 
 if [ "$OPTION" == "install" ] && [ "$PACKAGE" != "" ]; then
-    tux_install $PACKAGE
+    [ "$3" == "-y" ] && tux_install $PACKAGE false || tux_install $PACKAGE true
 elif [ "$OPTION" == "bootstrap" ]; then
     tux_bootstrap
 elif [ "$OPTION" == "check-deps" ]; then
