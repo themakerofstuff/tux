@@ -237,7 +237,10 @@ tux_install() {
 }
 
 tux_update() {
-
+    tux_info "Cloning package repository..."
+    rm -rf $REPO_DIR
+    git clone $(cat REPO_FILE) REPO_DIR
+    tux_success "Repository successfully cloned"
 }
 
 tux_check_deps_bootstrap() {
