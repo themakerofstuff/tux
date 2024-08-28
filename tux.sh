@@ -81,7 +81,19 @@ tux_install() {
         elif [ -d "$BUILD_DIR" ] && type continuepkg &> /dev/null; then
             tux_info "Build directory already exists, continuing package build..."
             cd $BUILD_DIR
-            source $ROOT/etc/tux/make.conf
+            if [ -f "$ROOT/etc/tux/$pkg-make.conf" ]; then
+                source $ROOT/etc/tux/$pkg-make.conf
+                for flag in $(cat $ROOT/etc/tux/$pkg-make.conf); do
+                    IFS='=' read -ra flags <<< "$flag"
+                    export ${flags[0]}
+                done
+            else
+                source $ROOT/etc/tux/make.conf
+                for flag in $(cat $ROOT/etc/tux/make.conf); do
+                    IFS='=' read -ra flags <<< "$flag"
+                    export ${flags[0]}
+                done
+            fi
             DST=$ROOT/var/lib/tux/$pkg-$pkgver
             mkdir -p $DST
             if ! continuepkg; then
@@ -152,8 +164,19 @@ tux_install() {
                 exit 1
             fi
         fi
-        source $ROOT/etc/tux/make.conf
-        export MAKEFLAGS CFLAGS CXXFLAGS LDFLAGS CPPFLAGS
+        if [ -f "$ROOT/etc/tux/$pkg-make.conf" ]; then
+            source $ROOT/etc/tux/$pkg-make.conf
+            for flag in $(cat $ROOT/etc/tux/$pkg-make.conf); do
+                IFS='=' read -ra flags <<< "$flag"
+                export ${flags[0]}
+            done
+        else
+            source $ROOT/etc/tux/make.conf
+            for flag in $(cat $ROOT/etc/tux/make.conf); do
+                IFS='=' read -ra flags <<< "$flag"
+                export ${flags[0]}
+            done
+        fi
         tux_info "Building package ${pkg}..."
         cd $BUILD_DIR
 	    DST=$ROOT/var/lib/tux/$pkg-$pkgver
@@ -211,6 +234,10 @@ tux_install() {
         unset -f copypkgfiles
         tux_success "Successfully installed ${pkg}"
     done
+}
+
+tux_update() {
+
 }
 
 tux_check_deps_bootstrap() {
