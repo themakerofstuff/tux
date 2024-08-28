@@ -62,6 +62,8 @@ tux_install() {
         exit 1
     fi
 
+    if [ "$3" == "noreinstall" ] && [ -d "$ROOT/etc/tux/installed/$1" ]; then tux_info "Package $1 is already installed"; return 0; fi 
+
     tux_info "The following packages will be installed:"
     echo $(tux_resolve_deps $1) $1
     if [ "$OPT" == "true" ]; then
@@ -338,12 +340,12 @@ tux_bootstrap() {
     mkdir -p $ROOT/tools
     mkdir -p ${ROOT}/etc/tux/installed
     mkdir -p ${ROOT}/var/lib/tux
-    [ -z "$MAKEFLAGS" ] && echo export MAKEFLAGS=-j$(nproc) >> $ROOT/etc/tux/make.conf || echo MAKEFLAGS=$MAKEFLAGS >> $ROOT/etc/tux/make.conf
+    [ -z "$MAKEFLAGS" ] && echo export MAKEFLAGS=-j$(nproc) > $ROOT/etc/tux/make.conf || echo MAKEFLAGS=$MAKEFLAGS > $ROOT/etc/tux/make.conf
     [ -z "$NINJAJOBS" ] && echo export NINJAJOBS=-j$(nproc) >> $ROOT/etc/tux/make.conf || echo NINJAJOBS=$NINJAJOBS >> $ROOT/etc/tux/make.conf
-    [ -z "$CFLAGS" ] || echo export CFLAGS=$CFLAGS >> $ROOT/etc/tux/make.conf
-    [ -z "$CXXFLAGS" ] || echo export CXXFLAGS=$CXXFLAGS >> $ROOT/etc/tux/make.conf
-    [ -z "$CPPFLAGS" ] || echo export CPPFLAGS=$CPPFLAGS >> $ROOT/etc/tux/make.conf
-    [ -z "$LDFLAGS" ] || echo export LDFLAGS=$LDFLAGS >> $ROOT/etc/tux/make.conf
+    [ -z "$CFLAGS" ] || echo export CFLAGS=\"$CFLAGS\" >> $ROOT/etc/tux/make.conf
+    [ -z "$CXXFLAGS" ] || echo export CXXFLAGS=\"$CXXFLAGS\" >> $ROOT/etc/tux/make.conf
+    [ -z "$CPPFLAGS" ] || echo export CPPFLAGS=\"$CPPFLAGS\" >> $ROOT/etc/tux/make.conf
+    [ -z "$LDFLAGS" ] || echo export LDFLAGS=\"$LDFLAGS\" >> $ROOT/etc/tux/make.conf
     echo https://github.com/themakerofstuff/tuxpkgs > $REPO_FILE
     tux_info "Cloning package repository..."
     sleep 0.3
@@ -362,17 +364,17 @@ tux_bootstrap() {
     export ROOT LC_ALL CC_TGT PATH CONFIG_SITE
 
     tux_info "Building binutils-cross-bootstrap..."
-    tux_install binutils-cross-bootstrap false
+    tux_install binutils-cross-bootstrap false noreinstall
     tux_info "Building gcc-cross-bootstrap..."
-    tux_install gcc-cross-bootstrap false
+    tux_install gcc-cross-bootstrap false noreinstall
     tux_info "Building linux-api-headers..."
-    tux_install linux-api-headers false
+    tux_install linux-api-headers false noreinstall
     tux_info "Building glibc-bootstrap..."
-    tux_install glibc-bootstrap false
+    tux_install glibc-bootstrap false noreinstall
     tux_info "Building libstdcpp-bootstrap..."
-    tux_install libstdcpp-bootstrap false
+    tux_install libstdcpp-bootstrap false noreinstall
     tux_info "Building base-bootstrap..."
-    tux_install base-bootstrap false
+    tux_install base-bootstrap false noreinstall
     tux_info "Mounting virtual file systems..."
     mkdir -pv $ROOT/{dev,proc,sys,run}
     mount -v --bind /dev $ROOT/dev
@@ -472,7 +474,7 @@ EOT
     tux_info "Building base-temptools..."
     chroot $ROOT /usr/bin/env -i HOME=/root TERM="$TERM" PS1="(chroot)\u:\w$ " PATH=/usr/bin:/usr/sbin /bin/bash --login -e << "EOT"
 export ROOT=""
-tux install base-temptools
+tux install base-temptools -y
 EOT
     tux_info "Cleaning up temporary tools..."
     chroot $ROOT /usr/bin/env -i HOME=/root TERM="$TERM" PS1="(chroot)\u:\w$ " PATH=/usr/bin:/usr/sbin /bin/bash --login -e << "EOT"
@@ -483,7 +485,7 @@ EOT
     tux_info "Building base..."
     chroot $ROOT /usr/bin/env -i HOME=/root TERM="$TERM" PS1="(chroot)\u:\w$ " PATH=/usr/bin:/usr/sbin /bin/bash --login -e << "EOT"
 export ROOT=""
-tux install base
+tux install base -y
 EOT
     tux_info "Cleaning up..."
     chroot $ROOT /usr/bin/env -i HOME=/root TERM="$TERM" PS1="(chroot)\u:\w$ " PATH=/usr/bin:/usr/sbin /bin/bash --login -e << "EOT"
