@@ -83,16 +83,8 @@ tux_install() {
             cd $BUILD_DIR
             if [ -f "$ROOT/etc/tux/$pkg-make.conf" ]; then
                 source $ROOT/etc/tux/$pkg-make.conf
-                for flag in $(cat $ROOT/etc/tux/$pkg-make.conf); do
-                    IFS='=' read -ra flags <<< "$flag"
-                    export ${flags[0]}
-                done
             else
                 source $ROOT/etc/tux/make.conf
-                for flag in $(cat $ROOT/etc/tux/make.conf); do
-                    IFS='=' read -ra flags <<< "$flag"
-                    export ${flags[0]}
-                done
             fi
             DST=$ROOT/var/lib/tux/$pkg-$pkgver
             mkdir -p $DST
@@ -166,16 +158,8 @@ tux_install() {
         fi
         if [ -f "$ROOT/etc/tux/$pkg-make.conf" ]; then
             source $ROOT/etc/tux/$pkg-make.conf
-            for flag in $(cat $ROOT/etc/tux/$pkg-make.conf); do
-                IFS='=' read -ra flags <<< "$flag"
-                export ${flags[0]}
-            done
         else
             source $ROOT/etc/tux/make.conf
-            for flag in $(cat $ROOT/etc/tux/make.conf); do
-                IFS='=' read -ra flags <<< "$flag"
-                export ${flags[0]}
-            done
         fi
         tux_info "Building package ${pkg}..."
         cd $BUILD_DIR
@@ -354,12 +338,12 @@ tux_bootstrap() {
     mkdir -p $ROOT/tools
     mkdir -p ${ROOT}/etc/tux/installed
     mkdir -p ${ROOT}/var/lib/tux
-    [ -z "$MAKEFLAGS" ] && echo MAKEFLAGS=-j$(nproc) >> $ROOT/etc/tux/make.conf || echo MAKEFLAGS=$MAKEFLAGS >> $ROOT/etc/tux/make.conf
-    [ -z "$NINJAJOBS" ] && echo NINJAJOBS=-j$(nproc) >> $ROOT/etc/tux/make.conf || echo NINJAJOBS=$NINJAJOBS >> $ROOT/etc/tux/make.conf
-    [ -z "$CFLAGS" ] || echo CFLAGS=$CFLAGS >> $ROOT/etc/tux/make.conf
-    [ -z "$CXXFLAGS" ] || echo CXXFLAGS=$CXXFLAGS >> $ROOT/etc/tux/make.conf
-    [ -z "$CPPFLAGS" ] || echo CPPFLAGS=$CPPFLAGS >> $ROOT/etc/tux/make.conf
-    [ -z "$LDFLAGS" ] || echo LDFLAGS=$LDFLAGS >> $ROOT/etc/tux/make.conf
+    [ -z "$MAKEFLAGS" ] && echo export MAKEFLAGS=-j$(nproc) >> $ROOT/etc/tux/make.conf || echo MAKEFLAGS=$MAKEFLAGS >> $ROOT/etc/tux/make.conf
+    [ -z "$NINJAJOBS" ] && echo export NINJAJOBS=-j$(nproc) >> $ROOT/etc/tux/make.conf || echo NINJAJOBS=$NINJAJOBS >> $ROOT/etc/tux/make.conf
+    [ -z "$CFLAGS" ] || echo export CFLAGS=$CFLAGS >> $ROOT/etc/tux/make.conf
+    [ -z "$CXXFLAGS" ] || echo export CXXFLAGS=$CXXFLAGS >> $ROOT/etc/tux/make.conf
+    [ -z "$CPPFLAGS" ] || echo export CPPFLAGS=$CPPFLAGS >> $ROOT/etc/tux/make.conf
+    [ -z "$LDFLAGS" ] || echo export LDFLAGS=$LDFLAGS >> $ROOT/etc/tux/make.conf
     echo https://github.com/themakerofstuff/tuxpkgs > $REPO_FILE
     tux_info "Cloning package repository..."
     sleep 0.3
