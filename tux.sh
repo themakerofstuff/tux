@@ -36,7 +36,10 @@ tux_resolve_deps() {
     deps_to_install=()
     source $BUILD_FILE
     for dep in ${depends[@]}; do
-        if [ ! -d "$ROOT/etc/tux/installed/$dep" ]; then
+        if [ "$2" == "all-deps" ]; then
+            deps_to_install+=( $(tux_resolve_deps $dep all-deps) )
+            deps_to_install+=( "${dep}" )
+        elif [ ! -d "$ROOT/etc/tux/installed/$dep" ]; then
             deps_to_install+=( $(tux_resolve_deps $dep) )
             deps_to_install+=( "${dep}" )
         fi
@@ -58,7 +61,6 @@ tux_install() {
         tux_error "Failed to find package $1"
         exit 1
     fi
-    if [ -d "$ROOT/etc/tux/installed/$1" ]; then tux_info "Package $1 is already installed"; return 0; fi
 
     tux_info "The following packages will be installed:"
     echo $(tux_resolve_deps $1) $1
@@ -73,19 +75,20 @@ tux_install() {
         BUILD_FILE=${REPO_DIR}/${pkg}/tuxbuild
         BUILD_DIR=${ROOT}/var/lib/tux/build/${pkg}
         LOG_FILE=${ROOT}/var/lib/tux/${pkg}-log.txt
+        source $BUILD_FILE
         if [ ! -d "$BUILD_DIR" ]; then
             mkdir -p $BUILD_DIR
-        else
-            rm -rf $BUILD_DIR
-            mkdir -p $BUILD_DIR
+        elif [ -d "$BUILD_DIR" ] && type continuepkg &> /dev/null; then
+            tux_info "Build directory already exists, continuing package build..."
+            cd $BUILD_DIR
+            if !
         fi
-        source $BUILD_FILE
         tux_info "Downloading files for package ${pkg}..."
         sleep 0.5
         for url in ${pkgurls[@]}; do
             IFS='/' read -ra pkgnm <<< "$url"
-            if [ ! -f $ROOT/var/lib/tux/sources/${pkgnm[-1]} ]; then
-                wget $url -P ${BUILD_DIR}/
+            if [ ! -f "$ROOT/var/lib/tux/sources/${pkgnm[-1]}" ]; then
+                wget -c $url -P ${BUILD_DIR}/
             else
                 cp $ROOT/var/lib/tux/sources/${pkgnm[-1]} $BUILD_DIR/
             fi
@@ -113,8 +116,6 @@ tux_install() {
         fi
         if ! buildpkg; then
             tux_error "Failed to build package ${pkg}"
-            tux_error "Log can be found at:"
-            echo $LOG_FILE
             rm -rf $BUILD_DIR
             exit 1
         fi
@@ -122,8 +123,6 @@ tux_install() {
         sleep 0.5
         if ! installpkg; then
             tux_error "Failed to install package ${pkg}"
-            tux_error "Log can be found at:"
-            echo $LOG_FILE
             rm -rf $BUILD_DIR $DST
             exit 1
         fi
@@ -149,8 +148,7 @@ tux_install() {
             cd $BUILD_DIR
             if ! postinstpkg; then
                 tux_error "Failed to run post-install for package ${pkg}"
-                tux_error "Log can be found at:"
-                echo $LOG_FILE
+                tux_error "Package may not be installed correctly"
                 rm -rf $BUILD_DIR $DST $INDEX_DIR
                 exit 1
             fi
@@ -485,7 +483,44 @@ rm -rf /tmp/{*,.*}
 find /usr/lib /usr/libexec -name \*.la -delete
 find /usr -depth -name $(uname -m)-tux-linux-gnu\* | xargs rm -rf
 rm -rf /etc/tux/installed/*-bootstrap /etc/tux/installed/*-temp /etc/tux/installed/base-temptools
+rm -rf /var/lib/tux/sources/*
 EOT
+}
+
+tux_download() {
+    OPT=$2
+    if [ ! -d "$REPO_DIR" ]; then
+        tux_info "Package repository not found, cloning it..."
+        git clone $(cat $REPO_FILE) $REPO_DIR
+    fi
+
+    if [ ! -d "${REPO_DIR}/${1}" ]; then
+        tux_error "Failed to find package $1"
+        exit 1
+    fi
+
+    tux_info "The following packages will be downloaded:"
+    echo $(tux_resolve_deps $1 all-deps) $1
+    if [ "$OPT" == "true" ]; then
+        read -p "Do you want to continue? [y/n] " yn
+        if [ "$yn" == "n" ] || [ "$yn" == "N" ]; then
+            exit 1
+        fi
+    fi
+    deps=( $(tux_resolve_deps $1 all-deps) $1 )
+    for pkg in ${deps[@]}; do
+        mkdir -p $ROOT/var/lib/tux/sources
+        tux_info "Downloading package ${pkg}..."
+        sleep 0.5
+        source $REPO_DIR/$pkg/tuxbuild
+        for url in ${pkgurls[@]}; do
+            IFS='/' read -ra pkgnm <<< "$url"
+            if [ ! -f "$ROOT/var/lib/tux/sources/${pkgnm[-1]}" ]; then
+                wget -c $url -P $ROOT/var/lib/tux/sources
+            fi
+        done
+        tux_success "Successfully downloaded $pkg"
+    done
 }
 
 if [ "$EUID" != "0" ]; then tux_error "This must be run as root"; exit 1; fi
