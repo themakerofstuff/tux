@@ -613,6 +613,10 @@ elif [ "$OPTION" == "bootstrap" ]; then
     tux_bootstrap
 elif [ "$OPTION" == "check-deps" ]; then
     tux_check_deps_bootstrap
+elif [ "$OPTION" == "download" ] && [ "$PACKAGE" != "" ]; then
+    [ "$3" == "-y" ] && tux_download $PACKAGE false || tux_download $PACKAGE true
+elif [ "$OPTION" == "update" ]; then
+    tux_update
 else
     tux_error "Valid arguments not specified"
     exit 1
