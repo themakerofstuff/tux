@@ -77,66 +77,10 @@ tux_install() {
         BUILD_DIR=${ROOT}/var/lib/tux/build/${pkg}
         LOG_FILE=${ROOT}/var/lib/tux/${pkg}-log.txt
         source $BUILD_FILE
-        if [ ! -d "$BUILD_DIR" ]; then
-            mkdir -p $BUILD_DIR
-        elif [ -d "$BUILD_DIR" ] && type continuepkg &> /dev/null; then
-            tux_info "Build directory already exists, continuing package build..."
-            cd $BUILD_DIR
-            if [ -f "$ROOT/etc/tux/$pkg-make.conf" ]; then
-                source $ROOT/etc/tux/$pkg-make.conf
-            else
-                source $ROOT/etc/tux/make.conf
-            fi
-            DST=$ROOT/var/lib/tux/$pkg-$pkgver
-            mkdir -p $DST
-            if ! continuepkg; then
-                tux_error "Failed to build package $pkg"
-                rm -rf $BUILD_DIR
-                exit 1
-            fi
-            tux_info "Installing package ${pkg}..."
-            if ! installpkg; then
-                tux_error "Failed to install package ${pkg}"
-                rm -rf $BUILD_DIR $DST
-                exit 1
-            fi
-            cd $DST
-            INDEX_DIR=${ROOT}/etc/tux/installed/${pkg}
-            if [ ! -d "$INDEX_DIR" ]; then mkdir -p $INDEX_DIR; else rm -rf $INDEX_DIR; mkdir -p $INDEX_DIR; fi
-            find . -type f | sed s/.// > ${INDEX_DIR}/FILES
-            find . -type l | sed s/.// > ${INDEX_DIR}/LINKS
-            find . -type d | sed s/.// > ${INDEX_DIR}/DIRS
-            echo $pkgver > ${INDEX_DIR}/VERSION
-            for x in ${depends[@]}; do
-                echo $x >> ${INDEX_DIR}/DEPENDS
-            done
-            tux_info "Copying files for ${pkg}..."
-            sleep 0.5
-            if type copypkgfiles &> /dev/null; then
-                copypkgfiles
-            else
-                rsync -aK ${DST}/* ${ROOT}/
-            fi
-            if type postinstpkg &> /dev/null; then
-                tux_info "Running post install tasks for ${pkg}..."
-                cd $BUILD_DIR
-                if ! postinstpkg; then
-                    tux_error "Failed to run post-install for package ${pkg}"
-                    tux_error "Package may not be installed correctly"
-                    rm -rf $BUILD_DIR $DST $INDEX_DIR
-                    exit 1
-                fi
-            fi
-            tux_info "Cleaning up..."
-            rm -rf $BUILD_DIR $DST
-	        unset -f buildpkg
-	        unset -f installpkg
-	        unset -f postinstpkg
-            unset -f continuepkg
-            unset -f copypkgfiles
-            tux_success "Successfully installed $pkg"
-            continue
+        if [ -d "$BUILD_DIR" ]; then
+            rm -rf $BUILD_DIR
         fi
+        mkdir -p $BUILD_DIR
         tux_info "Downloading files for package ${pkg}..."
         sleep 0.5
         for url in ${pkgurls[@]}; do
@@ -215,7 +159,6 @@ tux_install() {
 	    unset -f buildpkg
 	    unset -f installpkg
 	    unset -f postinstpkg
-        unset -f continuepkg
         unset -f copypkgfiles
         tux_success "Successfully installed ${pkg}"
     done
@@ -596,8 +539,6 @@ if [ "$OPTION" == "install" ] && [ "$PACKAGE" != "" ]; then
     [ "$3" == "-y" ] && tux_install $PACKAGE false || tux_install $PACKAGE true
 elif [ "$OPTION" == "bootstrap" ]; then
     tux_bootstrap
-elif [ "$OPTION" == "check-deps" ]; then
-    tux_check_deps_bootstrap
 elif [ "$OPTION" == "download" ] && [ "$PACKAGE" != "" ]; then
     [ "$3" == "-y" ] && tux_download $PACKAGE false || tux_download $PACKAGE true
 elif [ "$OPTION" == "update" ]; then
