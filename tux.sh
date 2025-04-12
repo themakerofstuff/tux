@@ -283,7 +283,7 @@ tux_bootstrap() {
     mkdir -p ${ROOT}/etc/tux/installed
     mkdir -p ${ROOT}/var/lib/tux
     [ -z "$MAKEFLAGS" ] && echo export MAKEFLAGS=-j$(nproc) > $ROOT/etc/tux/make.conf || echo MAKEFLAGS=$MAKEFLAGS > $ROOT/etc/tux/make.conf
-    [ -z "$NINJAJOBS" ] && echo export NINJAJOBS=-j$(nproc) >> $ROOT/etc/tux/make.conf || echo NINJAJOBS=$NINJAJOBS >> $ROOT/etc/tux/make.conf
+    [ -z "$NINJAJOBS" ] && echo export NINJAJOBS=$(nproc) >> $ROOT/etc/tux/make.conf || echo NINJAJOBS=$NINJAJOBS >> $ROOT/etc/tux/make.conf
     [ -z "$CFLAGS" ] || echo export CFLAGS=\"$CFLAGS\" >> $ROOT/etc/tux/make.conf
     [ -z "$CXXFLAGS" ] || echo export CXXFLAGS=\"$CXXFLAGS\" >> $ROOT/etc/tux/make.conf
     [ -z "$CPPFLAGS" ] || echo export CPPFLAGS=\"$CPPFLAGS\" >> $ROOT/etc/tux/make.conf
