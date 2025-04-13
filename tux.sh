@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 OPTION=$1
 PACKAGE=$2
